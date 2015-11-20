@@ -25,7 +25,17 @@ namespace BFInterpeterConsole
                 Console.ReadKey();
                 return;
             }
-            char[] dataList = new char[40000];
+
+            char[] dataList;
+            try
+            {
+                dataList = new char[int.Parse(args[1])];
+            }
+            catch
+            {
+                dataList = new char[40000];
+            }
+
             //List<char> dataList = new List<char>(40000);
             int dataPointer = 0;
             int programInstructionPointer = 0;
