@@ -13,6 +13,7 @@ namespace BFInterpeterConsole
         static void Main(string[] args)
         {
             char[] fileContent;
+            var validChars = "><+-.,[]".ToCharArray().ToLookup(x => x);
 
             try
             {
@@ -25,6 +26,10 @@ namespace BFInterpeterConsole
                 Console.ReadKey();
                 return;
             }
+
+            Console.SetWindowSize(90, 24);
+
+            fileContent = fileContent.Where(x => validChars.Contains(x)).ToArray();
 
             char[] dataList;
             try
@@ -39,7 +44,9 @@ namespace BFInterpeterConsole
             //List<char> dataList = new List<char>(40000);
             int dataPointer = 0;
             int programInstructionPointer = 0;
-            int bracketLevel = 0;
+
+            var bracketStack = new Stack<int>();
+            var sbuilder = new StringBuilder();
 
             while (programInstructionPointer < fileContent.Length)
             {
@@ -58,7 +65,17 @@ namespace BFInterpeterConsole
                         dataList[dataPointer]--;
                         break;
                     case '.':
-                        Console.Write(dataList[dataPointer]);
+                        var theChar = dataList[dataPointer];
+                        if(theChar == 10)
+                        {
+                            Console.WriteLine(sbuilder.ToString());
+                            sbuilder.Clear();
+                        }
+                        else
+                        {
+                            sbuilder.Append(theChar);
+                        }
+                       
                         break;
                     case ',':
                         dataList[dataPointer] = Console.ReadKey().KeyChar;
@@ -66,12 +83,12 @@ namespace BFInterpeterConsole
                     case '[':
                         if (dataList[dataPointer] != 0)
                         {
-                            bracketLevel++;
+                            bracketStack.Push(programInstructionPointer);
                         }
                         else
                         {
-                            int tempBracketLevel = bracketLevel;
-                            int intendedBracketLevel = bracketLevel - 1;
+                            int tempBracketLevel = bracketStack.Count;
+                            int intendedBracketLevel = tempBracketLevel - 1;
                             programInstructionPointer++;
                             for (int i = programInstructionPointer; i < fileContent.Length; i++)
                             {
@@ -95,29 +112,11 @@ namespace BFInterpeterConsole
                     case ']':
                         if (dataList[dataPointer] == 0)
                         {
-                            bracketLevel--;
+                            bracketStack.Pop();
                         }
                         else
                         {
-                            int tempBracketLevel = bracketLevel;
-                            int intendedBracketLevel = bracketLevel - 1;
-                            programInstructionPointer--;
-                            for (int i = programInstructionPointer; i >= 0; i--)
-                            {
-                                if (fileContent[i] == '[')
-                                {
-                                    tempBracketLevel--;
-                                }else if (fileContent[i] == ']')
-                                {
-                                    tempBracketLevel++;
-                                }
-
-                                if (intendedBracketLevel == tempBracketLevel)
-                                {
-                                    programInstructionPointer = i;
-                                    break;
-                                }
-                            }
+                            programInstructionPointer = bracketStack.Peek();
                         }
                         break;
 
